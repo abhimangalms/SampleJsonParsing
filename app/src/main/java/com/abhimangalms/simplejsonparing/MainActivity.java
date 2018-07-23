@@ -1,5 +1,6 @@
 package com.abhimangalms.simplejsonparing;
 
+import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
@@ -32,52 +33,73 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
 
-                HttpURLConnection connection = null;
-                BufferedReader reader = null;
-
-
-                try {
-
-                    URL url = new URL("https://jsonparsingdemo-cec5b.firebaseapp.com/jsonData/moviesDemoItem.txt");
-                    connection = (HttpURLConnection) url.openConnection();
-                    connection.connect();
-
-                    InputStream stream = connection.getInputStream();
-
-                    reader = new BufferedReader(new InputStreamReader(stream));
-
-                    StringBuffer buffer = new StringBuffer();
-
-                    while ((line = reader.readLine()) != null){
-
-                        buffer.append(line);
-                    } 
-
-                    mtvJsonItem.setText(buffer.toString());
-
-                } catch (MalformedURLException e) {
-                    e.printStackTrace();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                } finally {
-
-                    if (connection != null) {
-
-                        connection.disconnect();
-
-                    }
-                    try {
-                        if (reader != null) {
-                            reader.close();
-                        }
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
+                new JsonTask().execute("https://jsonparsingdemo-cec5b.firebaseapp.com/jsonData/moviesDemoItem.txt");
 
             }
         });
 
 
+    }
+
+    public class JsonTask extends AsyncTask<String, String, String>{
+
+        @Override
+        protected String doInBackground(String... urls) {
+
+            HttpURLConnection connection = null;
+            BufferedReader reader = null;
+
+
+            try {
+
+                URL url = new URL(urls[0]);
+                connection = (HttpURLConnection) url.openConnection();
+                connection.connect();
+
+                InputStream stream = connection.getInputStream();
+
+                reader = new BufferedReader(new InputStreamReader(stream));
+
+                StringBuffer buffer = new StringBuffer();
+
+                while ((line = reader.readLine()) != null){
+
+                    buffer.append(line);
+                }
+
+                //returning fetched data
+                return buffer.toString();
+
+
+            } catch (MalformedURLException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            } finally {
+
+                if (connection != null) {
+
+                    connection.disconnect();
+
+                }
+                try {
+                    if (reader != null) {
+                        reader.close();
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            //return NULL if failed to fetch data
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(String result) {
+            super.onPostExecute(result);
+
+            mtvJsonItem.setText(result);
+        }
     }
 }
